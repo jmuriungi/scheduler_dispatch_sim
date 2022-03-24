@@ -150,6 +150,53 @@ class cpu {
 
 };
 
+vector<int> FCFS(){
+
+    vector<int> holder;
+    //load processes into queue
+    //set fixed cpu 
+    //until all processes are done
+    //pop a process from the top of the queue
+    //update the state to ready and run the process through cpus
+    //set all necessary times needed for total process
+    //take process out of queue
+    //get all the analytic information from cpus process table and store in holder and store in holder
+    
+
+return holder;
+
+}
+
+vector<int> SPT(){
+     vector<int> holder;
+    //load processes into queue
+    //set fixed cpu
+    //until all processes are done
+    //use math min to get process with shortest processing 
+    //update the state to ready and run the process through cpus
+    //update times 
+    //take process out of queue
+    //get all the analytic information and store in holder
+    
+
+return holder;
+
+}
+
+vector<int> Robin(){
+    vector<int> holder;
+    //load processes into map with slot time
+    //until all processes are done
+    //run top process
+    //if it's not completed. upddate necessary cpu time to complete and add it back to the map
+    //if complete, take out of map
+    //get all the analytic information and store in holder
+    
+
+return holder;
+
+}
+
 int main () {
     cpu virtualCPU[CPU_COUNT]; 
     // For each CPU created, assign this

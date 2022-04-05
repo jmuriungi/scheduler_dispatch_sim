@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <vector>
+#include <algorithm>
 #include <string> 
 
 #include "../headers/cpu.h"
@@ -86,6 +87,15 @@ class processTable : protected cpu {
                 return processPCB[i]->accumulated_R;
         }
     }
+
+    vector<pcb *> getProcessPcbList() { return processPCB; } // Return the entire vector of pointer to pcb structs in the process table
+
+    pcb* getProcessPcb(int index) { return processPCB.at(index); } // Return the pointer to that pcb at the index in the vector of process PCB's
+
+    vector<int> getPidList() { return pid_list; } // Return the entire vector of pid's in the process table
+
+    int getPid(int index) { return pid_list.at(index); } // Return the pointer to the pid at the index given in the vector of pid's
+
     /* -- printf / cout function -- */
 };
 
@@ -117,11 +127,11 @@ class cpu {
         fstream cpu_data;
         cpu_data.open("data_file.csv", std::ios::in);
         //Does the file exist?
-        if (cpu_data.fail()) {
-            std::cout << "The file you are trying to open DNE.\n";
-            exit(1);
-        }
-        cpu_data << "PID # | ARRIVAL TIME | CPU TIME | IO TIME | (Repeating on until process ends)\n";
+        if (cpu_data.fail()) { std::cout << "The file you are trying to open DNE.\n"; exit(1); } //Verify file actually opened
+
+        cpu_data << "PID # | ARRIVAL TIME | CPU TIME | IO TIME | (Repeating on until process ends)\n"; // Write the code for the values being placed into the table
+        // Possibly comment out the line above to make code easier, and have this here instead as a key to refer too.
+        
         for(int i=0; i<processCount; i++) {
             processes[i].pid = PID_ASSIGNED_NUM; // Set the PID of the processes, starting at 1
             PID_ASSIGNED_NUM++;
@@ -137,7 +147,6 @@ class cpu {
             pcbs[i].accumulated_R = 0; // set the accumulated_T to 0 due to being just created
             // Write to the cpu's file for this process on line [i]
             //- Form a string with the data just made above, then place that string in the CSV file on the line [i]+1 (or 2?)
-            //- fstream <<pidno,<<arrivaltime,<<cputime,<<iotime,<<cputime,<<iotime,cputime,<<iotime,<<cputime,<<iotime (on the line of the pid+1 (or 2?)) [and not placing a data string]
             // PID #, Arrival t, CPU t, IO t, CPU t, IO t, CPU t 
             cpu_data <<pcbs[i].pid <<","<< pcbs[i].arrivalTime <<","<< pcbs[i].cpuBurstTime <<","<< pcbs[i].ioTime;
         }
@@ -155,9 +164,32 @@ class cpu {
 
 
     /* -- base class functions -- */
-    int runproc() // runs a process
-    {
-        int success = 0;
+    int runproc(pcb* _selectedProcess, int runtime) // runs a process at specified 
+    {   
+        int temp_ioTime = rand() % 50;  // simulate random i/o time
+        int temp_cpu_burst = rand() % 20;   // simulate random cpu time
+        _selectedProcess->ioTime = temp_ioTime; // assign simulated i/o time to selected process
+        _selectedProcess->cpuBurstTime = temp_cpu_burst;    // assign simulated cpu time to selected process
+        _selectedProcess->accumulated_T = (_selectedProcess->accumulated_W + runtime);  // turnaround time = wait time + execution time
+        
+        /*
+        process* p_pointer; // Points to the process it is containing the information about
+        int pid; // pid = process.get_id(); Process ID (ID of the process)
+        int arrivalTime; // process's arrival time
+        int ioTime; // process's i/o time
+        int priority; // The process's priority (its favor in the queues)
+        bool state; // True = Ready ; False = Waiting
+        int cpuBurstTime; // The CPU Burst time for the process
+        int accumulated_T; // turnaround time
+        int accumulated_W; // wait time
+        int accumulated_R; // response time
+    */
+        int success = 0;    // maybe should be bool?
+        // pick a random process from process table
+        // update burst time, iotime, etc
+        
+
+        // Update Information
 
         return success;
     }
@@ -166,23 +198,32 @@ class cpu {
     processTable getProcessTable(){ return table; }
     
     /* -- printf / cout function -- */
-    
+    void print_data() {
 
-        return success;
+        //return success;
     }
-}
+};
 
-
-vector<int> FCFS(CPU present ){
+/*
+    present.table.getProcessPcbList() <- Return the entire vector of pointer to pcb structs in the process table
+    present.table.getProcessPcb(int index) <- Return the pointer to that pcb at the index in the vector of process PCB's
+    present.table.getPidList() <- Return the entire vector of pid's in the process table
+    present.table.getPid(int index) <- Return the pointer to the pid at the index given in the vector of pid's
+*/
+vector<int> FCFS(cpu present){
 
     vector<int> holder;
     //grab processes within the present CPU
     
     //set fixed cpu 
-//until all processes
+    //until all processes are done
      
-    for (int i = 0; i < present.processTable(). )
- are done
+    for (int i = 0; i < present.table.getPidList().size(); i++){
+        //run the next process
+        present.runproc(present.table.getProcessPcb(i));
+        //update process state
+    }
+ 
     //pop a process from the top of the queue
     //update the state to ready and run the process through cpus
     //set all necessary times needed for total process
@@ -194,9 +235,31 @@ return holder;
 
 }
 
-vector<int> SPT(){
+vector<int> SPT(cpu present){
 
      vector<int> holder;
+    
+      for (int i = 0; i < present.table.getPidList().size(); i++){
+          int x =0;
+        //find the minimum process time
+        //clear holder
+        holder.clear();
+        
+        for (int j =0; i <present.table.getPidList().size(); i++){
+        //fill holder with the process times
+        holder[i]= present.table.getProcessPcb(i).ioTime;
+        }
+        //get minimum element from holder
+        x = min_element(holder.begin(), holder.end());
+        //set that index to a large time than possible 
+        holder[x] = 1000;
+
+        present.runproc(present.table.getProcessPcb(i));
+        //update process state
+        
+        
+        
+    }
     //load processes into queue
     //set fixed cpu
     //until all processes are done

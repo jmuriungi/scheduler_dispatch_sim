@@ -1,1 +1,7 @@
-# scheduler_dispatch_sim
+# CPU Scheduler Dispatch Sim
+
+## Assumptions
+
+## Design
+
+## 

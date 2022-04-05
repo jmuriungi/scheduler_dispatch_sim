@@ -142,6 +142,7 @@ class cpu {
             cpu_data <<pcbs[i].pid <<","<< pcbs[i].arrivalTime <<","<< pcbs[i].cpuBurstTime <<","<< pcbs[i].ioTime;
         }
         // Close the fstream
+        cpu_data.close(); 
 
         // populate process table with process and their pcbs 
         for(int i=0; i<processCount; i++) { table.addPCB(&pcbs[i]); }

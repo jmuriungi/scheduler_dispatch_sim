@@ -250,26 +250,18 @@ vector<int> FCFS(cpu present){
             //pop process from wait queue
             wait_queue.pop_front();
             //add to ready queue
-            ready_queue.push_front(curr_process);
-        }        
-    }
-    //run processes in the ready queue
-    std::deque<pcb*> ready_queue;
-    //add all processes of the cpu to the wait_queue
+            ready_queue.push_back(curr_process);
+        }      
 
-     
-    for (int i = 0; i < present.table.getPidList().size(); i++){
-        //run the next process
-        present.runproc(present.table.getProcessPcb(i), present.table.getProcessPcb(i)->ioTime);
-        //update process state
+        //run processes in ready queue 
+        while(!ready_queue.empty()){
+            present.runproc(ready_queue.front(), ready_queue.front()->ioTime);
+
+        }
+
     }
- 
-    //pop a process from the top of the queue
-    //update the state to ready and run the process through cpus
-    //set all necessary times needed for total process
-    //take process out of queue
-    //get all the analytic information from cpus process table and store in holder and store in holder
     
+
 
 return holder;
 
@@ -279,25 +271,66 @@ bool compare(std::pair<int ,int> i, std::pair<int, int> j) {
   return i.second < j.second;
 }
 
-vector<int> SPT(cpu present){
+int checkproc(std::deque<pcb*> hold, int iotime){
+    int holding;
+    for(int i =0; i < hold.size(); i++){
+        if (hold[i]->ioTime == iotime){
+            holding = i;
+            break;
+        }
+    }
+    return holding;
 
+}
+vector<int> SPT(cpu present){
      vector<int> holder;
      map<int,int> processholder;
+     int curno = present.table.getPidList().size();
 
-     //fill map with iotimes and the index for the io time
-     for (int i =0; i <present.table.getPidList().size(); i++){
+    //map holds iotimes and index
+    for (int i =0; i <present.table.getPidList().size(); i++){
          processholder.insert(std::pair<int, int>(i,present.table.getProcessPcb(i)->ioTime));
      }
 
-     for(int i =0; i < present.table.getPidList().size(); i++){
-         std::pair<int, int> min = *min_element(processholder.begin(), processholder.end(), compare); 
-        //run process at the index for the minimum element
-        present.runproc(present.table.getProcessPcb(min.first), present.table.getProcessPcb(min.first)->ioTime);
-        //delete current min 
-        processholder.erase(min.second);
+    //having waitqueue of processes
+    std::deque<pcb *> wait_queue;
+    std::deque<pcb *> ready_queue;
+    
+    //grab processes within the present CPU
+    //put some in a waiting queue
+    for(int i=0; i<present.table.getPidList().size(); i++)
+    {
+        wait_queue.push_back(present.table.getProcessPcb(i));        
+    }
 
+    while(!wait_queue.empty())
+    {
+        //select a random number of processes from wait queue and add to ready queue
+        int randno = rand() % curno;
+        curno = curno -randno;
+        //move processes from wait queue to ready queue
+        for(int i =0; i <= randno; i++){
+            //get min ioTime from map 
+            std::pair<int, int> min = *min_element(processholder.begin(), processholder.end(), compare);
+            int ioTim = min.second;
+            //run function to get process with that iotime and push process to ready queue
+            int index = checkproc(wait_queue,ioTim);
+             //add that process to ready queue
+            ready_queue.push_back(wait_queue[index]);
+            //delete that process
+            wait_queue.erase(wait_queue.begin()+index);
+            //add that process to ready queue
+            
+          
+        }      
 
-     }
+        //run processes in ready queue 
+        while(!ready_queue.empty()){
+            present.runproc(ready_queue.front(), ready_queue.front()->ioTime);
+
+        }
+
+    }
      
         
         
@@ -313,66 +346,71 @@ vector<int> SPT(cpu present){
 
 
 vector<int> Robin(cpu present){
+
     vector<int> holder;
+
+    //have a random interrupt moment
     // interrupt time should be 
-    int interrupt = rand() % 10;   // if process runtime = interrupt, stop running process
     int curno = present.table.getPidList().size();
     // holds processes just created
     std::deque<pcb *> wait_queue;
     // holds processes ready to be executed
     std::deque<pcb *> ready_queue;
+    //create map mapping process to its time left (map holds pid and time left)
+    map<int,int> processholder;
+    //populate process holder with pid and iotime 
+    for (int i =0; i <present.table.getPidList().size(); i++){
+         processholder.insert(std::pair<int, int>(present.table.getProcessPcb(i)->pid,present.table.getProcessPcb(i)->ioTime));
+     }
+    //if process has no time left, delete it from waiting queue
+    //if it still has time, move it back to waiting queue and remove it from ready queue
     
-    //grab processes within the present CPU
-    //put some in a waiting queue
+    //load wait queue 
     for(int i=0; i<curno; i++)
     {
         wait_queue.push_back(present.table.getProcessPcb(i));        
     }
     //while the wait queue still has processes
     while(!wait_queue.empty())
-    {
-        // push top process in wait queue to ready queue to begin with
-        pcb* curr_process = wait_queue.front();
-        //add to ready queue
-        ready_queue.push_front(curr_process);
-        //pop process from wait queue
-        wait_queue.pop_front();
-        // while ready queue still has processes
-        while(!ready_queue.empty())
-        {
-            present.runproc(curr_process, curr_process->cpuBurstTime);
-            // interrupt the process somehow
-            if(curr_process->cpuBurstTime == interrupt)
-            {
-                // update process's cpu burst time
-                // move current process from ready queue to wait queue
-                pcb* interrupted_process = ready_queue.front();
-                wait_queue.push_back(interrupted_process);
-                ready_queue.pop_front();
-                // pick next process to run from ready queue on a FCFS basis
-                // interrupt it,
-                // move it to wait queue
-                // remove from ready queue
-                // pick next process to run from ready queue on a FCFS basis
-                // interrupt it,
-                // move it to wait queue
-                // remove from ready queue
-                // and on and on, until all processes executed, i.e wait queue empty? 
-                // how do we tell if a process has completed execution?
-            }
+    {  //select a random number of processes from wait queue and add to ready queue
+        int randno = rand() % curno;
+         curno = curno -randno;
+        //move processes from wait queue to ready queue
+        for(int i =0; i <= randno; i++){
+            //get top process of wait queue because pop destroys element
+            pcb* curr_process = wait_queue.front();
+            //pop process from wait queue
+            wait_queue.pop_front();
+            //add to ready queue
+            ready_queue.push_back(curr_process);
+        }       
+
+        //while ready queue isnt empty
+        while(!ready_queue.empty()){
+
+        int runtime = rand() % processholder.at(ready_queue.front()->pid);
+        //select time that current process wil run
+         //run top process
+        present.runproc(ready_queue.front(),runtime);
+        //update in map
+        processholder.at(ready_queue.front()->pid) = processholder.at(ready_queue.front()->pid) - runtime;
+        if(processholder.at(ready_queue.front()->pid)>0){
+            //put process into wait queue
+            wait_queue.push_back(ready_queue.front());
+            //remove from ready queue
+            ready_queue.pop_front();
+        } else {
+            ready_queue.pop_front();
+        }
+       
+
+        }
+       
+
+        
+        
         }
 
-        // put the process back to wait queue
-        // select next process to run from wait queue on a FCFS basis
-        // add it to ready queue and execute
-        // add interrupt time to
-    }
-    //load processes into map with slot time
-    //until all processes are done
-    //run top process
-    //if it's not completed. upddate necessary cpu time to complete and add it back to the map
-    //if complete, take out of map
-    //get all the analytic information and store in holder
     
 
 return holder;

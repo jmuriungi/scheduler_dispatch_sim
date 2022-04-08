@@ -1,3 +1,6 @@
+// OS_dispatcher_simulation.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -5,11 +8,13 @@
 #include <map>
 #include <algorithm>
 
-#define CPU_COUNT 5
+#define CPU_COUNT 5                 // implement five cpus
+#define RR_Quantum 15               // time taken before process is interrupted by Round Robin scheduler
+#define TOTAL_RUNTIME 2000000000    // time available to processes to run, decremented as processes run on cpus
 
 int PID_ASSIGNED_NUM = 0;
-
-class cpu;
+int arrival_time = 0;       // instead of clock, set and incremented by 2 before a process is executed
+int CPU_runtime = TOTAL_RUNTIME;
 
 struct process {
     int pid;
@@ -126,7 +131,8 @@ public:
             pcbs[i].ioTime = 0; // Set ioTime to 0 initially
             pcbs[i].priority = priority; // Set the priority given, 0 be default | low, medium, high, critical
             pcbs[i].state = false; // Set the state to waiting
-            pcbs[i].cpuBurstTime = 0; // Set the cpu burst time to 0
+            int proc_runtime = rand() % 20;
+            pcbs[i].cpuBurstTime = proc_runtime; // Set the cpu burst time to a random number between 0 and 
             pcbs[i].accumulated_T = 0; // set the accumulated_T to 0 due to being just created
             pcbs[i].accumulated_W = 0; // set the accumulated_T to 0 due to being just created
             pcbs[i].accumulated_R = 0; // set the accumulated_T to 0 due to being just created
@@ -151,7 +157,7 @@ public:
     /* -- base class functions -- */
     int runproc(pcb* _selectedProcess, int runtime) // runs a process at specified 
     {
-
+        CPU_runtime -= _selectedProcess->cpuBurstTime;      //once a process is run remove time taken to run it from CPU
         // update burst time, iotime, etc
         int temp_ioTime = rand() % 50;  // simulate random i/o time
         int temp_cpu_burst = rand() % 20;   // simulate random cpu time
@@ -167,7 +173,7 @@ public:
         proc_data.open("data_file.csv");
         //Does the file exist?
         if (proc_data.fail()) { std::cout << "The file you are trying to open DNE.\n"; exit(1); } //Verify file actually opened
-        proc_data << _selectedProcess->pid << ";" << _selectedProcess->cpuBurstTime << ";" << _selectedProcess->ioTime << ";" << _selectedProcess->cpuBurstTime << ";" << _selectedProcess->ioTime << ";" << _selectedProcess->cpuBurstTime;
+        proc_data << _selectedProcess->pid << "," << _selectedProcess->cpuBurstTime << "," << _selectedProcess->ioTime << "," << _selectedProcess->cpuBurstTime << "," << _selectedProcess->ioTime << "," << _selectedProcess->cpuBurstTime;
         proc_data.close();
         /*
         process* p_pointer; // Points to the process it is containing the information about
@@ -229,6 +235,7 @@ std::vector<int> FCFS(cpu present) {
         //run processes in ready queue 
         while (!ready_queue.empty()) {
             present.runproc(ready_queue.front(), ready_queue.front()->ioTime);
+            ready_queue.pop_front();    // remove process already run
         }
     }
     return holder;
@@ -291,7 +298,7 @@ std::vector<int> SPT(cpu present) {
         //run processes in ready queue 
         while (!ready_queue.empty()) {
             present.runproc(ready_queue.front(), ready_queue.front()->ioTime);
-
+            ready_queue.pop_front();    // remove process already run
         }
     }
     return holder;
@@ -360,17 +367,17 @@ int main()
     cpu virtualCPU[CPU_COUNT];
 
     // call scheduling function for each cpu
-    FCFS(virtualCPU[0]);
+    //FCFS(virtualCPU[0]);
 
      
 
-    /*SPT(virtualCPU[1]);
+    SPT(virtualCPU[1]);
 
-    Robin(virtualCPU[2]);
+    //Robin(virtualCPU[2]);
 
-    SPT(virtualCPU[4]);
+    //SPT(virtualCPU[4]);
 
-    Robin(virtualCPU[5]);*/
+    //Robin(virtualCPU[5]);
 
     // from ready queue to execution
     // void select_process()

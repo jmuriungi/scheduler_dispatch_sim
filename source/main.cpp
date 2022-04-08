@@ -1,40 +1,19 @@
-//#include "../headers/cpu.h"
 #include <iostream>
-#include <ios>
-#include <string>
-#include <istream>
-#include <pthread.h>
-#include <vector>
-#include <algorithm>
-#include <map>
-#include <ctime>
 #include <fstream>
-#include <ostream>
+#include <vector>
 #include <deque>
-
-using std::vector;
-using std::fstream;
-using std::map;
-using std::string;
-using std::ios;
-using std::cout;
+#include <map>
+#include <algorithm>
 
 #define CPU_COUNT 5
-// mutex <- for interaction somewhere
 
-// things to keep track of to be printed out later:
-// throughput time
-// avg turnaround times
-// avg wait times
-// avg response times
-// avg context switching times
-// processor utilization - U [%]
-// speedup over multiple CPUs
 int PID_ASSIGNED_NUM = 0;
+
+class cpu;
 
 struct process {
     int pid;
-    string data = ""; // Data generated for the process to hold 
+    std::string data = ""; // Data generated for the process to hold 
 };
 
 struct pcb {
@@ -50,11 +29,11 @@ struct pcb {
     int accumulated_R; // response time
 };
 
-class processTable : protected cpu {
-    public:
+class processTable {  
+public:
     /* -- attributes -- */
-    vector<pcb *> processPCB; // List of Pcb pointer structs
-    vector<int> pid_list; //list for PID's of the same PCB in the process PCB list
+    std::vector<pcb*> processPCB; // List of Pcb pointer structs
+    std::vector<int> pid_list; //list for PID's of the same PCB in the process PCB list
     int totalT;
     int totalW;
     int totalR;
@@ -66,39 +45,39 @@ class processTable : protected cpu {
     void addPCB(pcb* _pcb) {
         processPCB.push_back(_pcb);
         pid_list.push_back(_pcb->pid);
-    }    
+    }
     // Remove / clean a process
     /* -- Getters & Setters -- */
     int getTotalT() { return totalT; } // Return the total turn around time amongst all the processes
     int getTotalW() { return totalW; } // Return the total wait time amongst all the processes  
     int getTotalR() { return totalR; } // Return the total responce time amongst all the processes
-    
+
     int getProcessT(int _pid) { // Get the accumulated_T from the specified process which is called by the process ID 
-        for(int i=0; i<pid_list.size(); i++) {
+        for (int i = 0; i < pid_list.size(); i++) {
             if (pid_list.at(i) == _pid)
                 return processPCB[i]->accumulated_T;
         }
     }
-    
+
     int getProcessW(int _pid) { // Get the accumulated_W from the specified process which is called by the process ID 
-        for(int i=0; i<pid_list.size(); i++) {
-            if (pid_list.at(i) == _pid) 
+        for (int i = 0; i < pid_list.size(); i++) {
+            if (pid_list.at(i) == _pid)
                 return processPCB[i]->accumulated_W;
         }
     }
 
     int getProcessR(int _pid) { // Get the accumulated_R from the specified process which is called by the process ID 
-        for(int i=0; i<pid_list.size(); i++) {
-            if (pid_list.at(i) == _pid) 
+        for (int i = 0; i < pid_list.size(); i++) {
+            if (pid_list.at(i) == _pid)
                 return processPCB[i]->accumulated_R;
         }
     }
 
-    vector<pcb *> getProcessPcbList() { return processPCB; } // Return the entire vector of pointer to pcb structs in the process table
+    std::vector<pcb*> getProcessPcbList() { return processPCB; } // Return the entire vector of pointer to pcb structs in the process table
 
     pcb* getProcessPcb(int index) { return processPCB.at(index); } // Return the pointer to that pcb at the index in the vector of process PCB's
 
-    vector<int> getPidList() { return pid_list; } // Return the entire vector of pid's in the process table
+    std::vector<int> getPidList() { return pid_list; } // Return the entire vector of pid's in the process table
 
     int getPid(int index) { return pid_list.at(index); } // Return the pointer to the pid at the index given in the vector of pid's
 
@@ -107,17 +86,17 @@ class processTable : protected cpu {
 
 
 class cpu {
-    public:
+public:
     /* -- attributes -- */
     processTable table; // Make the process table for the CPU [[Ignore this error, it is not true]]
 
-    protected:
+protected:
     int processCount;
     process* processes; // The dynamically allocated processes for the cpu
     pcb* pcbs; // The dynamically allocated pcbs for the cpu
-    
-    public:
-    /* -- constructors -- */ 
+
+public:
+    /* -- constructors -- */
     cpu() : cpu(rand() % 50 + 26) {} // default constructor for cpu 
     /*We're gonna have x ammount of processes (1-50 +25 processes), automatically
       call argumented constructor with that process count to invoke it. */
@@ -130,15 +109,15 @@ class cpu {
 
         // For each process and pcb, do the following
         /* - Create a Fstream and create a new file by name of CPU#_PROC# such as "cpu1proc1" or something */
-        fstream cpu_data;
-        cpu_data.open("data_file.csv", std::fstream::in);
-        //Does the file exist?
-        if (cpu_data.fail()) { std::cout << "The file you are trying to open DNE.\n"; exit(1); } //Verify file actually opened
+        //std::ofstream cpu_data;
+        //cpu_data.open("data_file.csv", std::ios::in);
+        ////Does the file exist?
+        //if (cpu_data.fail()) { std::cout << "The file you are trying to open DNE.\n"; exit(1); } //Verify file actually opened
 
-        cpu_data << "PID # | ARRIVAL TIME | CPU TIME | IO TIME | (Repeating on until process ends)\n"; // Write the code for the values being placed into the table
+        //cpu_data << "PID # | ARRIVAL TIME | CPU TIME | IO TIME | (Repeating on until process ends)\n"; // Write the code for the values being placed into the table
         // Possibly comment out the line above to make code easier, and have this here instead as a key to refer too.
 
-        for(int i=0; i<processCount; i++) {
+        for (int i = 0; i < processCount; i++) {
             processes[i].pid = PID_ASSIGNED_NUM; // Set the PID of the processes, starting at 1
             PID_ASSIGNED_NUM++;
             pcbs[i].p_pointer = &processes[i]; // Set the p_pointer as a pointer to the [i] process
@@ -157,10 +136,10 @@ class cpu {
             // cpu_data <<pcbs[i].pid <<", "<< pcbs[i].arrivalTime <<", "<< pcbs[i].cpuBurstTime <<", "<< pcbs[i].ioTime <<", "<< pcbs[i].cpuBurstTime <<", "<< pcbs[i].ioTime;
         }
         // Close the fstream
-        cpu_data.close(); 
+        //cpu_data.close();
 
         // populate process table with process and their pcbs 
-        for(int i=0; i<processCount; i++) { table.addPCB(&pcbs[i]); }
+        for (int i = 0; i < processCount; i++) { table.addPCB(&pcbs[i]); }
     }
 
     ~cpu() {
@@ -171,8 +150,8 @@ class cpu {
 
     /* -- base class functions -- */
     int runproc(pcb* _selectedProcess, int runtime) // runs a process at specified 
-    {   
-        
+    {
+
         // update burst time, iotime, etc
         int temp_ioTime = rand() % 50;  // simulate random i/o time
         int temp_cpu_burst = rand() % 20;   // simulate random cpu time
@@ -182,13 +161,13 @@ class cpu {
         _selectedProcess->ioTime = temp_ioTime; // assign simulated i/o time to selected process
         _selectedProcess->cpuBurstTime = temp_cpu_burst;    // assign simulated cpu time to selected process
         _selectedProcess->accumulated_T = (_selectedProcess->accumulated_W + runtime);  // turnaround time = wait time + execution time
-        
+
         // print process information to data file once process is run
-        fstream proc_data;
-        proc_data.open("data_file.csv", fstream::in);
+        std::ofstream proc_data;
+        proc_data.open("data_file.csv");
         //Does the file exist?
         if (proc_data.fail()) { std::cout << "The file you are trying to open DNE.\n"; exit(1); } //Verify file actually opened
-        proc_data << _selectedProcess->pid <<", " << _selectedProcess->cpuBurstTime << ", " << _selectedProcess->ioTime << ", " << _selectedProcess->cpuBurstTime << ", " << _selectedProcess->ioTime << ", " << _selectedProcess->cpuBurstTime;
+        proc_data << _selectedProcess->pid << ";" << _selectedProcess->cpuBurstTime << ";" << _selectedProcess->ioTime << ";" << _selectedProcess->cpuBurstTime << ";" << _selectedProcess->ioTime << ";" << _selectedProcess->cpuBurstTime;
         proc_data.close();
         /*
         process* p_pointer; // Points to the process it is containing the information about
@@ -208,8 +187,8 @@ class cpu {
     }
 
     /* -- Getters & Setters -- */
-    processTable getProcessTable(){ return table; }
-    
+    processTable getProcessTable() { return table; }
+
     /* -- printf / cout function -- */
     void print_data() {
 
@@ -217,214 +196,181 @@ class cpu {
     }
 };
 
-/*
-    present.table.getProcessPcbList() <- Return the entire vector of pointer to pcb structs in the process table
-    present.table.getProcessPcb(int index) <- Return the pointer to that pcb at the index in the vector of process PCB's
-    present.table.getPidList() <- Return the entire vector of pid's in the process table
-    present.table.getPid(int index) <- Return the pointer to the pid at the index given in the vector of pid's
-*/
-vector<int> FCFS(cpu present){
+std::vector<int> FCFS(cpu present) {
     int curno = present.table.getPidList().size();
-    vector<int> holder;
+    std::vector<int> holder;
 
-    std::deque<pcb *> wait_queue;
-    std::deque<pcb *> ready_queue;
-    
+    std::deque<pcb*> wait_queue;
+    std::deque<pcb*> ready_queue;
+
     //grab processes within the present CPU
     //put some in a waiting queue
-    for(int i=0; i<present.table.getPidList().size(); i++)
+    for (int i = 0; i < present.table.getPidList().size(); i++)
     {
-        wait_queue.push_back(present.table.getProcessPcb(i));        
+        wait_queue.push_back(present.table.getProcessPcb(i));
     }
 
     //while the wait queue still has processes
-    while(!wait_queue.empty())
+    while (!wait_queue.empty())
     {
         //select a random number of processes from wait queue and add to ready queue
         int randno = rand() % curno;
-        curno = curno -randno;
+        curno = curno - randno;
         //move processes from wait queue to ready queue
-        for(int i =0; i <= randno; i++){
+        for (int i = 0; i <= randno; i++) {
             //get top process of wait queue because pop destroys element
             pcb* curr_process = wait_queue.front();
             //pop process from wait queue
             wait_queue.pop_front();
             //add to ready queue
             ready_queue.push_back(curr_process);
-        }      
-
-        //run processes in ready queue 
-        while(!ready_queue.empty()){
-            present.runproc(ready_queue.front(), ready_queue.front()->ioTime);
-
         }
 
+        //run processes in ready queue 
+        while (!ready_queue.empty()) {
+            present.runproc(ready_queue.front(), ready_queue.front()->ioTime);
+        }
     }
-    
-
-
-return holder;
-
+    return holder;
 }
 
-bool compare(std::pair<int ,int> i, std::pair<int, int> j) {
-  return i.second < j.second;
+bool compare(std::pair<int, int> i, std::pair<int, int> j) {
+    return i.second < j.second;
 }
 
-int checkproc(std::deque<pcb*> hold, int iotime){
+int checkproc(std::deque<pcb*> hold, int iotime) {
     int holding;
-    for(int i =0; i < hold.size(); i++){
-        if (hold[i]->ioTime == iotime){
+    for (int i = 0; i < hold.size(); i++) {
+        if (hold[i]->ioTime == iotime) {
             holding = i;
             break;
         }
     }
     return holding;
-
 }
-vector<int> SPT(cpu present){
-     vector<int> holder;
-     map<int,int> processholder;
-     int curno = present.table.getPidList().size();
+
+std::vector<int> SPT(cpu present) {
+    std::vector<int> holder;
+    std::map<int, int> processholder;
+    int curno = present.table.getPidList().size();
 
     //map holds iotimes and index
-    for (int i =0; i <present.table.getPidList().size(); i++){
-         processholder.insert(std::pair<int, int>(i,present.table.getProcessPcb(i)->ioTime));
-     }
-
-    //having waitqueue of processes
-    std::deque<pcb *> wait_queue;
-    std::deque<pcb *> ready_queue;
-    
-    //grab processes within the present CPU
-    //put some in a waiting queue
-    for(int i=0; i<present.table.getPidList().size(); i++)
-    {
-        wait_queue.push_back(present.table.getProcessPcb(i));        
+    for (int i = 0; i < present.table.getPidList().size(); i++) {
+        processholder.insert(std::pair<int, int>(i, present.table.getProcessPcb(i)->ioTime));
     }
 
-    while(!wait_queue.empty())
+    //having waitqueue of processes
+    std::deque<pcb*> wait_queue;
+    std::deque<pcb*> ready_queue;
+
+    //grab processes within the present CPU
+    //put some in a waiting queue
+    for (int i = 0; i < present.table.getPidList().size(); i++)
+    {
+        wait_queue.push_back(present.table.getProcessPcb(i));
+    }
+
+    while (!wait_queue.empty())
     {
         //select a random number of processes from wait queue and add to ready queue
         int randno = rand() % curno;
-        curno = curno -randno;
+        curno = curno - randno;
         //move processes from wait queue to ready queue
-        for(int i =0; i <= randno; i++){
+        for (int i = 0; i <= randno; i++) {
             //get min ioTime from map 
-            std::pair<int, int> min = *min_element(processholder.begin(), processholder.end(), compare);
+            std::pair<int, int> min = *std::min_element(processholder.begin(), processholder.end(), compare);
             int ioTim = min.second;
             //run function to get process with that iotime and push process to ready queue
-            int index = checkproc(wait_queue,ioTim);
-             //add that process to ready queue
+            int index = checkproc(wait_queue, ioTim);
+            //add that process to ready queue
             ready_queue.push_back(wait_queue[index]);
             //delete that process
-            wait_queue.erase(wait_queue.begin()+index);
+            wait_queue.erase(wait_queue.begin() + index);
             //add that process to ready queue
-            
-          
-        }      
-
+        }
         //run processes in ready queue 
-        while(!ready_queue.empty()){
+        while (!ready_queue.empty()) {
             present.runproc(ready_queue.front(), ready_queue.front()->ioTime);
 
         }
-
     }
-     
-        
-        
-        return holder;
-        
-    }
-    
-    //update times 
-    //take process out of queue
-    //get all the analytic information and store in holder
-    
+    return holder;
+}
 
-
-
-vector<int> Robin(cpu present){
-
-    vector<int> holder;
-
-    //have a random interrupt moment
-    // interrupt time should be 
+std::vector<int> Robin(cpu present) {
+    std::vector<int> holder;
     int curno = present.table.getPidList().size();
     // holds processes just created
-    std::deque<pcb *> wait_queue;
+    std::deque<pcb*> wait_queue;
     // holds processes ready to be executed
-    std::deque<pcb *> ready_queue;
+    std::deque<pcb*> ready_queue;
     //create map mapping process to its time left (map holds pid and time left)
-    map<int,int> processholder;
+    std::map<int, int> processholder;
     //populate process holder with pid and iotime 
-    for (int i =0; i <present.table.getPidList().size(); i++){
-         processholder.insert(std::pair<int, int>(present.table.getProcessPcb(i)->pid,present.table.getProcessPcb(i)->ioTime));
-     }
+    for (int i = 0; i < present.table.getPidList().size(); i++) {
+        processholder.insert(std::pair<int, int>(present.table.getProcessPcb(i)->pid, present.table.getProcessPcb(i)->ioTime));
+    }
     //if process has no time left, delete it from waiting queue
     //if it still has time, move it back to waiting queue and remove it from ready queue
-    
+
     //load wait queue 
-    for(int i=0; i<curno; i++)
+    for (int i = 0; i < curno; i++)
     {
-        wait_queue.push_back(present.table.getProcessPcb(i));        
+        wait_queue.push_back(present.table.getProcessPcb(i));
     }
     //while the wait queue still has processes
-    while(!wait_queue.empty())
+    while (!wait_queue.empty())
     {  //select a random number of processes from wait queue and add to ready queue
         int randno = rand() % curno;
-         curno = curno -randno;
+        curno = curno - randno;
         //move processes from wait queue to ready queue
-        for(int i =0; i <= randno; i++){
+        for (int i = 0; i <= randno; i++) {
             //get top process of wait queue because pop destroys element
             pcb* curr_process = wait_queue.front();
             //pop process from wait queue
             wait_queue.pop_front();
             //add to ready queue
             ready_queue.push_back(curr_process);
-        }       
-
+        }
         //while ready queue isnt empty
-        while(!ready_queue.empty()){
-
-        int runtime = rand() % processholder.at(ready_queue.front()->pid);
-        //select time that current process wil run
-         //run top process
-        present.runproc(ready_queue.front(),runtime);
-        //update in map
-        processholder.at(ready_queue.front()->pid) = processholder.at(ready_queue.front()->pid) - runtime;
-        if(processholder.at(ready_queue.front()->pid)>0){
-            //put process into wait queue
-            wait_queue.push_back(ready_queue.front());
-            //remove from ready queue
-            ready_queue.pop_front();
-        } else {
-            ready_queue.pop_front();
+        while (!ready_queue.empty()) {
+            int runtime = rand() % processholder.at(ready_queue.front()->pid);
+            //select time that current process wil run
+             //run top process
+            present.runproc(ready_queue.front(), runtime);
+            //update in map
+            processholder.at(ready_queue.front()->pid) = processholder.at(ready_queue.front()->pid) - runtime;
+            if (processholder.at(ready_queue.front()->pid) > 0) {
+                //put process into wait queue
+                wait_queue.push_back(ready_queue.front());
+                //remove from ready queue
+                ready_queue.pop_front();
+            }
+            else {
+                ready_queue.pop_front();
+            }
         }
-       
-
-        }
-       
-
-        
-        
-        }
-
-    
-
-return holder;
+    }
+    return holder;
 
 }
 
-int main () {
-    cpu virtualCPU[CPU_COUNT]; 
-    // For each CPU created, assign this
+int main()
+{
+    cpu virtualCPU[CPU_COUNT];
 
-    // Do the threading stuff here and queues and things
-    /* QUEUES*/
-    // Ready Queue
-    // Waiting Queue
+    // call scheduling function for each cpu
+    FCFS(virtualCPU[0]);
+
+     
+
+    /*SPT(virtualCPU[1]);
+
+    Robin(virtualCPU[2]);
+
+    SPT(virtualCPU[4]);
+
+    Robin(virtualCPU[5]);*/
 
     // from ready queue to execution
     // void select_process()
@@ -445,7 +391,7 @@ int main () {
     //
     //      }
     // }
-    
+
 
     return 0;
 }

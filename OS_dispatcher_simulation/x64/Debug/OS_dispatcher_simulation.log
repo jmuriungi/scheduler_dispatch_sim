@@ -1,0 +1,5 @@
+﻿  OS_dispatcher_simulation.cpp
+C:\Users\jerem\Documents\CS475\OS_dispatcher_simulation\OS_dispatcher_simulation\OS_dispatcher_simulation.cpp(206,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\jerem\Documents\CS475\OS_dispatcher_simulation\OS_dispatcher_simulation\OS_dispatcher_simulation.cpp(262,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\jerem\Documents\CS475\OS_dispatcher_simulation\OS_dispatcher_simulation\OS_dispatcher_simulation.cpp(309,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  OS_dispatcher_simulation.vcxproj -> C:\Users\jerem\Documents\CS475\OS_dispatcher_simulation\x64\Debug\OS_dispatcher_simulation.exe
